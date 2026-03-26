@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="HOP-CFP-Backend.Library/HOP-CFP-Backend.Library.csproj" />
+  <Project Path="HOP-CFP-Backend/HOP-CFP-Backend.csproj" />
+</Solution>
