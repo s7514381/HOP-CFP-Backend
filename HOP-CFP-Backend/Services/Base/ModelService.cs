@@ -25,9 +25,11 @@ namespace HOP_CFP_Backend.Services
             _keyField = CommonUtility.GetKeyAttribute<DBModel>();
         }
 
-        public virtual string SqlData()
+        public virtual string SqlData(
+            string select = "", string from = "", string join = "",
+            string where = "", string subWhere = "", string order = "")
         {
-            return $"SELECT * FROM {_tableName} WHERE {_keyField} = @Id";
+            return Sql(select, from, join, where, subWhere: "and main.Id = @Id", order);
         }
 
         public virtual string SqlModelData()
@@ -43,6 +45,14 @@ namespace HOP_CFP_Backend.Services
         public virtual async Task<DBModel> GetData(Guid id)
         {
             DBModel result = await QueryFirstAsync<DBModel>(SqlData(), new { Id = id });
+            return result;
+        }
+
+        public virtual async Task<DBModel> GetFieldData(Guid id, string fieldArray)
+        {
+            string sql = $"SELECT {fieldArray} FROM {_tableName} WHERE {_keyField} = @Id";
+
+            DBModel result = await QueryFirstAsync<DBModel>(sql, new { Id = id });
             return result;
         }
 
@@ -167,11 +177,12 @@ namespace HOP_CFP_Backend.Services
             IEnumerable<ViewModel> list = await QueryAsync<ViewModel>(sql, new { ParentId = parentId });
 
             List<Task> tasks = new();
-            int i = 0;
+            int seq = 0;
             foreach (ViewModel model in list)
             {
                 //如果是子項目，則套用排序
-                if (!model.Sequence.HasValue) { model.Sequence = i++; }
+                if (!model.Sequence.HasValue) { model.Sequence = seq + 1; }
+                seq = model.Sequence.Value;
             }
             await SetModelList(list);
 

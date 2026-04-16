@@ -15,12 +15,19 @@ namespace HOP_CFP_Backend.Controllers
         public SupplierController(BaseControllerArgument argument) : base(argument, argument.LazyServiceArgument.SupplierService.Value) { }
 
         [HttpPost]
-        public async Task<IActionResult> GetSelectListItems() 
+        public async Task<IActionResult> GetSelectListItems(string? keyword)
         {
             ApiResult<IEnumerable<SelectListItem>> result = new();
-            result.SetSuccess(await _supplierService.GetSelectListItems("Name"));
+            result.SetSuccess(await _supplierService.GetSelectListItems(keyword));
             return Json(result);
         }
+
+        [HttpGet]
+        public IActionResult test() {
+            return Json(new { success = true });
+        }
+
+
 
     }
 }

@@ -10,6 +10,7 @@ namespace HOP_CFP_Backend.ViewModels
         public int length { get; set; }
         public int draw { get; set; }
         public EStatus? Status { get; set; }
+        public Guid? ManagerId { get; set; }
     }
 
     public class DataTablesOrder

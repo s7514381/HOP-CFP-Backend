@@ -37,6 +37,8 @@ namespace HOP_CFP_Backend.Library.Models
         public virtual DbSet<Material> Material { get; set; }
         public virtual DbSet<MaterialGroup> MaterialGroup { get; set; }
         public virtual DbSet<MaterialNotify> MaterialNotify { get; set; }
+        public virtual DbSet<MaterialCompare> MaterialCompare { get; set; }
+        public virtual DbSet<MaterialSpec> MaterialSpec { get; set; }
         //
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

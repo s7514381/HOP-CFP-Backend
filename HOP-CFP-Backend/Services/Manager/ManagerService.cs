@@ -118,18 +118,27 @@ namespace HOP_CFP_Backend.Services
             if (emailCount > 0)
                 return new ApiResult<object>().SetError("Email 已被使用");
 
+            string checkTaxIDSql = "SELECT COUNT(*) FROM Manager WHERE TaxID = @TaxID AND Status != -1";
+            int taxIDCount = await QueryFirstAsync<int>(checkTaxIDSql, new { viewModel.TaxID });
+            if (taxIDCount > 0)
+                return new ApiResult<object>().SetError("統編已被使用");
+
             byte[] passwordHash = GenPasswordHash(viewModel.Password);
+
+            Guid id = Guid.NewGuid();
 
             Manager manager = new Manager
             {
-                Id = Guid.NewGuid(),
+                Id = id,
                 Account = viewModel.Account,
                 Email = viewModel.Email,
                 Name = viewModel.Name,
+                TaxID = viewModel.TaxID,
                 PasswordHash = passwordHash,
                 EmailConfirm = false,
                 LastPasswordChangeDate = DateTime.Now,
-                Status = EStatus.Enable
+                Status = EStatus.Enable,
+                CreateUserId = id
             };
 
             await InsertAsync(manager);
@@ -177,8 +186,10 @@ namespace HOP_CFP_Backend.Services
             {
                 ManagerId = manager.Id,
                 Account = manager.Account,
-                Name = manager.Name
-            }, new MemoryCacheEntryOptions
+                Name = manager.Name,
+                TaxID = manager.TaxID
+            }
+            , new MemoryCacheEntryOptions
             {
                 AbsoluteExpiration = DateTimeOffset.UtcNow.AddMinutes(20)
             });

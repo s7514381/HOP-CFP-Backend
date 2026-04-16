@@ -1,4 +1,5 @@
 ﻿using Dapper.Contrib.Extensions;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using TableAttribute = Dapper.Contrib.Extensions.TableAttribute;
 
@@ -10,6 +11,8 @@ namespace HOP_CFP_Backend.Library.Models.System
     [Table("SysConfig")]
     public class SysConfig : IdModelBase
     {
+        public string? Key { get; set; }
+
         /// <summary>
         /// 對應Value
         /// </summary>
@@ -28,5 +31,11 @@ namespace HOP_CFP_Backend.Library.Models.System
         /// </summary>
         [MaxLength(200)]
         public string? TypeName { get; set; }
+
+        public override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<SysConfig>()
+                 .HasIndex(b => b.Key);
+        }
     }
 }

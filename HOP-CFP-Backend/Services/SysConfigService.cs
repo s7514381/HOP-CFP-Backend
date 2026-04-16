@@ -31,7 +31,7 @@ namespace HOP_CFP_Backend.Services
             return Repository.QueryFirstAsync<SysConfig>(@"
                 SELECT TOP (1) *
                 FROM [SysConfig] WITH (NOLOCK)
-                WHERE [Id] = @id
+                WHERE [Key] = @id
             ", new { id });
         }
 

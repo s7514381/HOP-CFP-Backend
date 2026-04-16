@@ -4,6 +4,7 @@ using HOP_CFP_Backend.Library.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HDP_CFP_Backend.Migrations
 {
     [DbContext(typeof(DBContext))]
-    partial class DBContextModelSnapshot : ModelSnapshot
+    [Migration("20260401100152_Tim_20260401")]
+    partial class Tim_20260401
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -379,7 +382,7 @@ namespace HDP_CFP_Backend.Migrations
                         .HasComment("狀態");
 
                     b.Property<string>("TaxID")
-                        .HasColumnType("nvarchar(450)")
+                        .HasColumnType("nvarchar(max)")
                         .HasComment("統編");
 
                     b.Property<DateTime?>("UpdateDate")
@@ -391,8 +394,6 @@ namespace HDP_CFP_Backend.Migrations
                         .HasComment("修改人員");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("TaxID");
 
                     b.ToTable("Manager");
                 });
@@ -506,7 +507,7 @@ namespace HDP_CFP_Backend.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("MaterialNumber")
-                        .HasColumnType("nvarchar(450)")
+                        .HasColumnType("nvarchar(max)")
                         .HasComment("料號");
 
                     b.Property<string>("ProductModel")
@@ -537,10 +538,6 @@ namespace HDP_CFP_Backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MaterialNumber");
-
-                    b.HasIndex("SupplierId");
-
                     b.ToTable("Material");
                 });
 
@@ -561,7 +558,7 @@ namespace HDP_CFP_Backend.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("MaterialNumber")
-                        .HasColumnType("nvarchar(450)")
+                        .HasColumnType("nvarchar(max)")
                         .HasComment("供應商料號");
 
                     b.Property<int?>("Sequence")
@@ -585,8 +582,6 @@ namespace HDP_CFP_Backend.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("MaterialId");
-
-                    b.HasIndex("MaterialNumber");
 
                     b.HasIndex("SupplierId");
 
@@ -675,60 +670,7 @@ namespace HDP_CFP_Backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MaterialId");
-
                     b.ToTable("MaterialNotify");
-                });
-
-            modelBuilder.Entity("HOP_CFP_Backend.Library.Models.MaterialSpec", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
-                        .HasDefaultValueSql("NEWID()");
-
-                    b.Property<DateTime?>("CreateDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("CreateUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("MaterialCompareId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("MaterialId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)")
-                        .HasComment("名稱");
-
-                    b.Property<int?>("Sequence")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SpecNumber")
-                        .HasColumnType("nvarchar(max)")
-                        .HasComment("規格編號");
-
-                    b.Property<short?>("Status")
-                        .HasColumnType("smallint")
-                        .HasComment("狀態");
-
-                    b.Property<DateTime?>("UpdateDate")
-                        .HasColumnType("datetime2")
-                        .HasComment("更新時間");
-
-                    b.Property<Guid?>("UpdateUserId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasComment("修改人員");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MaterialCompareId");
-
-                    b.HasIndex("MaterialId");
-
-                    b.ToTable("MaterialSpec");
                 });
 
             modelBuilder.Entity("HOP_CFP_Backend.Library.Models.Supplier", b =>
@@ -901,9 +843,6 @@ namespace HDP_CFP_Backend.Migrations
                     b.Property<Guid?>("CreateUserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Key")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("Note")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -933,8 +872,6 @@ namespace HDP_CFP_Backend.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Key");
 
                     b.ToTable("SysConfig");
                 });

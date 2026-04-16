@@ -10,6 +10,7 @@ namespace HOP_CFP_Backend.Library.Repositories
     // 務必確保介面有繼承 IDisposable
     public class DapperRepository : IDapperRepository
     {
+        private readonly object _connectionLock = new object();
         private readonly DapperDBContext _dbContext;
         private IDbConnection _connection;
         private IDbTransaction _transaction;
@@ -37,10 +38,16 @@ namespace HOP_CFP_Backend.Library.Repositories
         // 修改點 3：新增一個內部機制，確保只有在真的要執行 SQL 時才開啟連線
         private void EnsureConnectionOpen()
         {
+            // 使用 lock 確保只有一個執行緒能執行連線開啟邏輯
             if (_connection.State == ConnectionState.Closed)
             {
-                Console.WriteLine($"開啟連線");
-                _connection.Open();
+                lock (_connectionLock)
+                {
+                    if (_connection.State == ConnectionState.Closed)
+                    {
+                        _connection.Open();
+                    }
+                }
             }
         }
 
@@ -106,8 +113,6 @@ namespace HOP_CFP_Backend.Library.Repositories
         // 修改點 5：完善的 Dispose 模式，確保連線一定會歸還給連線池
         public void Dispose()
         {
-            Console.WriteLine($"關閉連線");
-
             Disposed?.Invoke(this, EventArgs.Empty);
             Dispose(true);
             GC.SuppressFinalize(this);

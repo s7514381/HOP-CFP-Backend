@@ -9,7 +9,19 @@ namespace HOP_CFP_Backend.Services
     {
         public MaterialGroupService(BaseServiceArgument argument) : base(argument) { }
 
+        protected override async Task SetModel(MaterialGroupModel viewModel) 
+        {
+            await base.SetModel(viewModel);
 
+            viewModel.MaterialList = (await _lazy.MaterialService.Value.GetMTMModelList(viewModel.Id)).ToList();
+        }
+
+        protected override async Task ModelSave(MaterialGroupModel viewModel) 
+        {
+            await base.ModelSave(viewModel);
+
+            await _lazy.ManyToManyService.Value.SaveById(viewModel, viewModel.MaterialList.Select(x => x.Id), CommonUtility.GetTableAttribute<Material>());
+        }
 
     }
 }

@@ -30,7 +30,8 @@ namespace HOP_CFP_Backend.Services
         public virtual string GetBaseWhere()
         {
             string result = "";
-            result = " WHERE main.[Status] != -1 ";
+            result = $@" WHERE main.[Status] != -1 
+                           and Manager.Id = @ManagerId";
 
             return result;
         }
@@ -56,7 +57,7 @@ namespace HOP_CFP_Backend.Services
                 SELECT main.*, Manager.Name AS UpdateUser
                        {AdditionalSqlSelect()}
                 FROM {_tableName} AS main with(NOLOCK)
-                LEFT JOIN Manager with(NOLOCK) ON main.UpdateUserId = Manager.Id
+                LEFT JOIN Manager with(NOLOCK) ON main.CreateUserId = Manager.Id
                 ";
         }
 
@@ -67,6 +68,8 @@ namespace HOP_CFP_Backend.Services
 
         public virtual async Task<ListViewModel> GetList(SearchViewModel searchModel)
         {
+            searchModel.ManagerId = _currentManager?.ManagerId;
+
             //主要資料語法
             (string mainSql, string baseWhere, string sqlWhere) = GetListQueryString(searchModel);
 

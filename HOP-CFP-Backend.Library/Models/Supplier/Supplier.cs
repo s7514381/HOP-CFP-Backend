@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.ComponentModel.DataAnnotations;
 using TableAttribute = Dapper.Contrib.Extensions.TableAttribute;
 
@@ -24,5 +25,11 @@ namespace HOP_CFP_Backend.Library.Models
 
         [Display(Name = "Email")]
         public string? Email { get; set; }
+
+        public override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Supplier>()
+                 .HasIndex(b => b.TaxID);
+        }
     }
 }

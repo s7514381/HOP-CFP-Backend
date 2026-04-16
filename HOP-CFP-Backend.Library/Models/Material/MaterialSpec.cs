@@ -9,21 +9,27 @@ namespace HOP_CFP_Backend.Library.Models
     /// <summary>
     /// 資料表: 活動清單
     /// </summary>
-    [Table(nameof(MaterialNotify))]
-    public class MaterialNotify : IdModelBase
+    [Table(nameof(MaterialSpec))]
+    public class MaterialSpec : IdModelBase
     {
+        [ForeignKey(nameof(MaterialCompare))]
+        public Guid? MaterialCompareId { get; set; }
+
         [ForeignKey(nameof(Material))]
         public Guid? MaterialId { get; set; }
 
-        [Display(Name = "是否發送")]
-        public bool IsSend { get; set; }
+        [Display(Name = "規格編號")]
+        public string? SpecNumber { get; set; }
 
-        [Display(Name = "是否更新資料")]
-        public bool IsUpdate { get; set; }
+        [Display(Name = "名稱")]
+        public string? Name { get; set; }
 
         public override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<MaterialNotify>()
+            modelBuilder.Entity<MaterialSpec>()
+                 .HasIndex(b => b.MaterialCompareId);
+
+            modelBuilder.Entity<MaterialSpec>()
                  .HasIndex(b => b.MaterialId);
         }
     }

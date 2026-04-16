@@ -12,13 +12,14 @@ namespace SmartExpoIoT.ViewModels.Api
     }
 
     public class BaseResult {
+        public int? Status { get; set; }
         public bool Success { get; set; }
         public string Message { get; set; } = string.Empty;
     }
 
     public static class ApiResultExtensions
     {
-        public static ApiResult<T> SetSuccess<T>(this ApiResult<T> response, T data, string message = "")
+        public static ApiResult<T> SetSuccess<T>(this ApiResult<T> response, T? data = default, string message = "")
         {
             response.Success = true;
             response.Message = message;

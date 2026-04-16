@@ -9,6 +9,11 @@ namespace HOP_CFP_Backend.ViewModels
 
     public class MaterialSearchViewModel : BaseSearchViewModel
     {
+        [Display(Name = "供應商")]
+        public string? SupplierName { get; set; }
+
+        [Display(Name = "料號")]
+        public string? MaterialNumber { get; set; }
     }
 
     public class MaterialListViewModel : PagingViewModel<MaterialListDataModel>
@@ -29,5 +34,33 @@ namespace HOP_CFP_Backend.ViewModels
         [Display(Name = "產品名稱")]
         public string? ProductName { get; set; }
 
+    }
+
+    public class BuyerCompareModel : Material
+    {
+        [Display(Name = "供應商名稱")]
+        public string? SupplierName { get; set; }
+
+        public List<MaterialSpecModel> MaterialSpecList { get; set; } = new();
+    }
+
+    public class BuyerMaterialCompare : MaterialCompare
+    {
+        [Display(Name = "產品型號")]
+        public string? ProductModel { get; set; }
+
+        [Display(Name = "產品名稱")]
+        public string? ProductName { get; set; }
+
+        [Display(Name = "賣方料號")]
+        public string? SellerMaterialNumber { get; set; }
+
+        [Display(Name = "賣方產品名稱")]
+        public string? SellerProductName { get; set; }
+    }
+
+    public class SellerCompareModel : Material
+    {
+        public List<MaterialCompareModel> MaterialCompareList { get; set; } = new();
     }
 }

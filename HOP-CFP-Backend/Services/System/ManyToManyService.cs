@@ -72,14 +72,14 @@ namespace HOP_CFP_Backend.Services
             return result;
         }
 
-        public async Task SaveById<TParent, TModel>(TParent parent, List<TModel> models)
+        public async Task SaveById<TParent, TModel>(TParent parent, IEnumerable<TModel> models)
             where TParent : IdModelBase
             where TModel : IdModelBase
         {
             await SaveById(parent, models.Select(x => x.Id).ToList(), CommonUtility.GetTableAttribute<TModel>());
         }
 
-        public async Task SaveById<TParent>(TParent parent, List<Guid> ids, string targetTable) where TParent : IdModelBase
+        public async Task SaveById<TParent>(TParent parent, IEnumerable<Guid> ids, string targetTable) where TParent : IdModelBase
         {
             List<Task> tasks = new();
             string sql;

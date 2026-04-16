@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
 using SmartExpoIoT.ViewModels.Api;
 
 namespace HOP_CFP_Backend.Filter
@@ -30,10 +31,9 @@ namespace HOP_CFP_Backend.Filter
                     token = result.Data;
                 }
             }
-            
 #endif
 
-            if (token == null) { reject(); return; }
+            if (!token.HasValue) { reject(); return; }
 
             if (!cache.TryGetValue(token.Value, out ManagerSessionModel? model))
             {
@@ -54,10 +54,17 @@ namespace HOP_CFP_Backend.Filter
 
             void reject()
             {
+                ApiResult<object> result = new ApiResult<object>
+                {
+                    Status = 401,
+                    Success = false,
+                    Message = "身份驗證失敗"
+                };
+
                 context.Result = new ContentResult
                 {
                     StatusCode = 401,
-                    Content = "身份驗證失敗",
+                    Content = JsonConvert.SerializeObject(result),
                     ContentType = "text/plain"
                 };
             }

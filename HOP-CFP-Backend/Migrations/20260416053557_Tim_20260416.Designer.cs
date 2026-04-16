@@ -4,6 +4,7 @@ using HOP_CFP_Backend.Library.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HDP_CFP_Backend.Migrations
 {
     [DbContext(typeof(DBContext))]
-    partial class DBContextModelSnapshot : ModelSnapshot
+    [Migration("20260416053557_Tim_20260416")]
+    partial class Tim_20260416
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -506,7 +509,7 @@ namespace HDP_CFP_Backend.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("MaterialNumber")
-                        .HasColumnType("nvarchar(450)")
+                        .HasColumnType("nvarchar(max)")
                         .HasComment("料號");
 
                     b.Property<string>("ProductModel")
@@ -536,10 +539,6 @@ namespace HDP_CFP_Backend.Migrations
                         .HasComment("修改人員");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("MaterialNumber");
-
-                    b.HasIndex("SupplierId");
 
                     b.ToTable("Material");
                 });
@@ -674,8 +673,6 @@ namespace HDP_CFP_Backend.Migrations
                         .HasComment("修改人員");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("MaterialId");
 
                     b.ToTable("MaterialNotify");
                 });

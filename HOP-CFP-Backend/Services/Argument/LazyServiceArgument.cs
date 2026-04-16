@@ -18,6 +18,10 @@ namespace HOP_CFP_Backend.Argument
         public Lazy<MaterialNotifyService> MaterialNotifyService { get; set; }
         public Lazy<AdminFunctionService> AdminFunctionService { get; set; }
         public Lazy<AdminMenuService> AdminMenuService { get; set; }
+        public Lazy<MaterialCompareService> MaterialCompareService { get; set; }
+        public Lazy<MaterialSpecService> MaterialSpecService { get; set; }
+        public Lazy<StatusQueryService> StatusQueryService { get; set; }
+        public Lazy<NotifyStatusReportService> NotifyStatusReportService { get; set; }
         //
 
         public LazyServiceArgument(
@@ -32,6 +36,10 @@ namespace HOP_CFP_Backend.Argument
              Lazy<MaterialGroupService> materialGroupService,
              Lazy<MaterialNotifyService> materialNotifyService,
              Lazy<AdminFunctionService> adminFunctionService,
+             Lazy<MaterialCompareService> materialCompareService,
+             Lazy<MaterialSpecService> materialSpecService,
+             Lazy<StatusQueryService> statusQueryService,
+             Lazy<NotifyStatusReportService> notifyStatusReportService,
              Lazy<AdminMenuService> adminMenuService)
         {
             BaseService = baseService;
@@ -46,6 +54,10 @@ namespace HOP_CFP_Backend.Argument
             MaterialNotifyService = materialNotifyService;
             AdminFunctionService = adminFunctionService;
             AdminMenuService = adminMenuService;
+            MaterialCompareService = materialCompareService;
+            MaterialSpecService = materialSpecService;
+            StatusQueryService = statusQueryService;
+            NotifyStatusReportService = notifyStatusReportService;
         }
 
     }
