@@ -1,4 +1,5 @@
 using HOP_CFP_Backend.Library.Models.Manager;
+using System.ComponentModel.DataAnnotations;
 
 namespace HOP_CFP_Backend.ViewModels
 {
@@ -17,6 +18,7 @@ namespace HOP_CFP_Backend.ViewModels
 
     public class AdminFunctionListDataModel : BaseListDataModel
     {
-
+        [Display(Name = "¥\¯à¦WºÙ")]
+        public string? Title { get; set; }
     }
 }

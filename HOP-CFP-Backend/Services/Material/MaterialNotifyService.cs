@@ -12,12 +12,19 @@ namespace HOP_CFP_Backend.Services
         public override string GetListQueryString_MainSQL()
         {
             return $@"
-                 SELECT  main.*, Manager.Name AS UpdateUser, Supplier.Name as SupplierName, MG.Name as MaterialGroupName
-                   FROM Material AS main with(NOLOCK)
-                   LEFT JOIN Manager with(NOLOCK) ON main.UpdateUserId = Manager.Id
-                   LEFT JOIN Supplier ON main.SupplierId = Supplier.Id
-                   LEFT JOIN ManyToMany MTM on main.Id = MTM.TargetId and MTM.TargetTable = 'Material'
-                   LEFT JOIN MaterialGroup MG on MTM.SourceId = MG.Id
+                 SELECT main.*, 
+                       Manager.Name AS UpdateUser, 
+                       Supplier.Name AS SupplierName,
+                       (
+                           SELECT STRING_AGG(MG.Name, '、') WITHIN GROUP (ORDER BY MG.CreateDate ASC)
+                           FROM ManyToMany MTM
+                           INNER JOIN MaterialGroup MG ON MTM.SourceId = MG.Id
+                           WHERE MTM.TargetId = main.Id 
+                             AND MTM.TargetTable = 'Material'
+                       ) AS MaterialGroupName
+                  FROM Material AS main WITH(NOLOCK)
+                  LEFT JOIN Manager WITH(NOLOCK) ON main.UpdateUserId = Manager.Id
+                  LEFT JOIN Supplier ON main.SupplierId = Supplier.Id
                 ";
         }
 

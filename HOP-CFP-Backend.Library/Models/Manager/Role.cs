@@ -10,5 +10,15 @@ namespace HOP_CFP_Backend.Library.Models.Manager
     {
         [Display(Name = "角色名稱")]
         public string? Name { get; set; }
+
+        public RoleType? Type { get; set; }
+    }
+
+    public enum RoleType
+    {
+        系統管理員 = 1,
+        公司管理員 = 2,
+        一般員工 = 3,
+        新註冊 = 4,
     }
 }

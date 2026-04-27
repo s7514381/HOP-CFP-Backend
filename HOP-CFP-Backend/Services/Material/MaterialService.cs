@@ -1,8 +1,10 @@
-﻿using HOP_CFP_Backend.Library.Models;
+﻿using Dapper;
+using HOP_CFP_Backend.Library.Models;
 using HOP_CFP_Backend.Library.Utility;
 using HOP_CFP_Backend.Utility;
 using HOP_CFP_Backend.ViewModels;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Text;
 
 namespace HOP_CFP_Backend.Services
 {
@@ -27,21 +29,31 @@ namespace HOP_CFP_Backend.Services
         public override string GetListQueryString_MainSQL()
         {
             return $@"
-                SELECT main.*, Manager.Name AS UpdateUser, Supplier.Name as SupplierName
-                FROM {_tableName} AS main with(NOLOCK)
-                LEFT JOIN Manager with(NOLOCK) ON main.UpdateUserId = Manager.Id
-                LEFT JOIN Supplier ON main.SupplierId = Supplier.Id
+                SELECT main.*, 
+                       Manager.Name AS UpdateUser, 
+                       Supplier.Name AS SupplierName,
+                       (
+                           SELECT STRING_AGG(MG.Name, '、') WITHIN GROUP (ORDER BY MG.CreateDate ASC)
+                           FROM ManyToMany MTM
+                           INNER JOIN MaterialGroup MG ON MTM.SourceId = MG.Id
+                           WHERE MTM.TargetId = main.Id 
+                             AND MTM.TargetTable = 'Material'
+                       ) AS MaterialGroupName
+                  FROM Material AS main WITH(NOLOCK)
+                  LEFT JOIN Manager WITH(NOLOCK) ON main.UpdateUserId = Manager.Id
+                  LEFT JOIN Supplier ON main.SupplierId = Supplier.Id
                 ";
         }
 
-        public virtual async Task<IEnumerable<SelectListItem>> GetSelectListItems(string? keyword)
+        public override async Task<IEnumerable<SelectListItem>> GetSelectListItems(string? keyword)
         {
             var result = await QueryAsync<(Guid Value, string Text)>($@"
-                SELECT top 100 {_keyField} AS Value, MaterialNumber + ' - ' + ProductName AS Text
-                FROM {_tableName}
-                WHERE Status != -1
-                  AND {_tableName}.CreateUserId = @CreateUserId
-                  AND (MaterialNumber LIKE @Keyword OR ProductName LIKE @Keyword ) ", new { Keyword = $"%{keyword}%", CreateUserId = _currentManager?.ManagerId });
+                SELECT top 100 main.{_keyField} AS Value, MaterialNumber + ' - ' + ProductName AS Text
+                FROM {_tableName} as main
+                left join Manager on main.CreateUserId = Manager.Id
+                WHERE main.Status != -1
+                  AND Manager.TaxID = @TaxID
+                  AND (MaterialNumber LIKE @Keyword OR ProductName LIKE @Keyword ) ", new { Keyword = $"%{keyword}%", _currentManager?.TaxID });
             return result.Select(x => new SelectListItem(x.Text, x.Value.ToString()));
         }
 
@@ -61,54 +73,48 @@ update MaterialNotify
    and IsUpdate != 1", new { viewModel.MaterialNumber, _currentManager?.TaxID });
         }
 
-
-        public async Task<BuyerCompareModel> GetBuyerCompareModel(Guid id)
+        public async Task<IEnumerable<SelectListItem>> GetKeywordSelectListItems(string? keyword)
         {
-            string sql = SqlData(select: "SELECT main.*, Supplier.Name as SupplierName",
-                                   join: "left join Supplier on main.SupplierId = Supplier.Id");
+            // 1. 如果沒輸入關鍵字，回傳空或預設前 50 筆
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                // 這裡可以依需求決定回傳空列表，或是執行不帶關鍵字的 TOP 50 查詢
+                return Enumerable.Empty<SelectListItem>();
+            }
 
-            BuyerCompareModel viewModel = await QueryFirstAsync<BuyerCompareModel>(sql, new { Id = id });
+            // 2. 拆分關鍵字 (例如 "4230 1838" -> ["4230", "1838"])
+            var keywords = keyword.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-            viewModel.MaterialSpecList = await _lazy.MaterialSpecService.Value.GetModelListByParent<Material>(id);
+            var sqlBuilder = new StringBuilder($@"
+        SELECT TOP 50 M.Id AS Value, S.[Name] + '(' + S.TaxID + ') - ' + M.MaterialNumber AS Text
+          FROM Material M
+          LEFT JOIN Manager on M.UpdateUserId = Manager.Id
+          LEFT JOIN Supplier S ON Manager.TaxID = S.TaxID AND S.[Status] = 1
+         WHERE M.[Status] = 1 ");
 
-            return viewModel;
+            var parameters = new DynamicParameters();
+            var allConditions = new List<string>();
+
+            // 3. 針對每一個拆分出來的字，建立一組括號內的 OR 條件
+            for (int i = 0; i < keywords.Length; i++)
+            {
+                string paramName = $"@p{i}";
+                // 這裡的邏輯是：(該字出現在 TaxID 或 Name 或 MaterialNumber)
+                allConditions.Add($"(S.TaxID LIKE {paramName} OR S.[Name] LIKE {paramName} OR M.MaterialNumber LIKE {paramName})");
+                parameters.Add(paramName, $"%{keywords[i]}%");
+            }
+
+            // 4. 將這些「組」用 AND 連接起來
+            if (allConditions.Any())
+            {
+                sqlBuilder.Append(" AND " + string.Join(" AND ", allConditions));
+            }
+
+            // 5. 執行 SQL
+            var result = await QueryAsync<(Guid Value, string Text)>(sqlBuilder.ToString(), parameters);
+
+            return result.Select(x => new SelectListItem(x.Text, x.Value.ToString()));
         }
-
-        public async Task EditBuyerCompareModel(BuyerCompareModel model)
-        {
-            await _lazy.MaterialSpecService.Value.UpdateDetail(model, model.MaterialSpecList);
-        }
-
-        public async Task<IEnumerable<BuyerMaterialCompare>> GetBuyerMaterialList(Guid id)
-        {
-            string sql = $@"
-select MC.*, M.ProductModel, M.ProductName, SM.MaterialNumber as SellerMaterialNumber, SM.ProductName as SellerProductName
-  from Material M
- inner join MaterialCompare MC on MC.MaterialNumber = M.MaterialNumber and MC.[Status] = 1
-  left join Supplier S on MC.SupplierId = S.Id
-  left join Manager on Manager.TaxID = S.TaxID
-  left join Material as SM on MC.MaterialId = SM.Id
- where Manager.Id = @ManagerId
-   and M.Id = @MaterialId";
-
-            IEnumerable<BuyerMaterialCompare> list = await QueryAsync<BuyerMaterialCompare>(sql, new { ManagerId = _currentManager?.ManagerId, MaterialId = id });
-
-            return list;
-        }
-
-        public async Task<SellerCompareModel> GetSellerCompareModel(Guid id)
-        {
-            SellerCompareModel viewModel = await QueryFirstAsync<SellerCompareModel>(SqlModelData(), new { Id = id });
-            viewModel.MaterialCompareList = await _lazy.MaterialCompareService.Value.GetModelListByParent<Material>(id);
-
-            return viewModel;
-        }
-
-        public async Task EditSellerCompareModel(SellerCompareModel model)
-        {
-            await _lazy.MaterialCompareService.Value.UpdateDetail(model, model.MaterialCompareList);
-        }
-
 
 
     }

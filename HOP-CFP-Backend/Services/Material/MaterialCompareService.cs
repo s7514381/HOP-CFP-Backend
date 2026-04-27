@@ -13,14 +13,13 @@ namespace HOP_CFP_Backend.Services
         {
             await base.SetModel(viewModel);
 
-            if (viewModel.SupplierId.HasValue)
+            if (viewModel.BuyerMaterialId.HasValue)
             {
-                var supplier = await _lazy.SupplierService.Value.GetFieldData(viewModel.SupplierId.Value, "Name, TaxID");
-                if (supplier != null) 
-                {
-                    viewModel.SupplierName = supplier.Name;
-                    viewModel.SupplierTaxID = supplier.TaxID;
-                }
+                (viewModel.BuyerMaterialNumber, viewModel.SupplierName, viewModel.SupplierTaxID) = 
+                    await QueryFirstAsync<(string, string, string)>(
+                        $@"select M.MaterialNumber, S.[Name] as SupplierName, S.TaxID as SupplierTaxID from Material M
+                             left join Supplier S on M.SupplierId = S.Id
+                            where M.Id = @Id", new { Id = viewModel.BuyerMaterialId.Value });
             }
         }
     }

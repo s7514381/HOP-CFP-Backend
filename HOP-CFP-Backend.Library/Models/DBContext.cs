@@ -16,7 +16,6 @@ namespace HOP_CFP_Backend.Library.Models
         #region Manager
         public virtual DbSet<AdminMenu> AdminMenu { get; set; }
         public virtual DbSet<AdminFunction> AdminFunction { get; set; }
-        public virtual DbSet<AdminMenuByRole> AdminMenuByRole { get; set; }
         public virtual DbSet<Log_ManagerLogin> Log_ManagerLogin { get; set; }
         public virtual DbSet<Log_ManagerLoginFail> Log_ManagerLoginFail { get; set; }
         public virtual DbSet<Manager.Manager> Manager { get; set; }

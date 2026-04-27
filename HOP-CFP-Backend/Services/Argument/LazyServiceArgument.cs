@@ -22,6 +22,9 @@ namespace HOP_CFP_Backend.Argument
         public Lazy<MaterialSpecService> MaterialSpecService { get; set; }
         public Lazy<StatusQueryService> StatusQueryService { get; set; }
         public Lazy<NotifyStatusReportService> NotifyStatusReportService { get; set; }
+        public Lazy<SellerCompareService> SellerCompareService { get; set; }
+        public Lazy<BuyerCompareService> BuyerCompareService { get; set; }
+        public Lazy<RoleService> RoleService { get; set; }
         //
 
         public LazyServiceArgument(
@@ -40,6 +43,9 @@ namespace HOP_CFP_Backend.Argument
              Lazy<MaterialSpecService> materialSpecService,
              Lazy<StatusQueryService> statusQueryService,
              Lazy<NotifyStatusReportService> notifyStatusReportService,
+             Lazy<SellerCompareService> sellerCompareService,
+             Lazy<BuyerCompareService> buyerCompareService,
+             Lazy<RoleService> roleService,
              Lazy<AdminMenuService> adminMenuService)
         {
             BaseService = baseService;
@@ -58,6 +64,9 @@ namespace HOP_CFP_Backend.Argument
             MaterialSpecService = materialSpecService;
             StatusQueryService = statusQueryService;
             NotifyStatusReportService = notifyStatusReportService;
+            SellerCompareService = sellerCompareService;
+            BuyerCompareService = buyerCompareService;
+            RoleService = roleService;
         }
 
     }

@@ -27,8 +27,8 @@ namespace HOP_CFP_Backend.Filter
 
                 if (!cache.TryGetValue(token.Value, out ManagerSessionModel? wmodel)) 
                 {
-                    ApiResult<Guid?> result = await managerService.Login(new ManagerLoginViewModel { Account = "string", Password = "string" });
-                    token = result.Data;
+                    ApiResult<LoginInfoModel> result = await managerService.Login(new ManagerLoginViewModel { Account = "string", Password = "string" });
+                    token = result.Data.Token;
                 }
             }
 #endif

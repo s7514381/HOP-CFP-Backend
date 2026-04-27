@@ -31,7 +31,7 @@ namespace HOP_CFP_Backend.Services
         {
             string result = "";
             result = $@" WHERE main.[Status] != -1 
-                           and Manager.Id = @ManagerId";
+                           and Manager.TaxID = @TaxID";
 
             return result;
         }
@@ -68,7 +68,8 @@ namespace HOP_CFP_Backend.Services
 
         public virtual async Task<ListViewModel> GetList(SearchViewModel searchModel)
         {
-            searchModel.ManagerId = _currentManager?.ManagerId;
+            searchModel.ManagerId = _currentManager?.Id;
+            searchModel.TaxID = _currentManager?.TaxID;
 
             //主要資料語法
             (string mainSql, string baseWhere, string sqlWhere) = GetListQueryString(searchModel);

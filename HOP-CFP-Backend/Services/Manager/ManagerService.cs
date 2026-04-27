@@ -24,6 +24,23 @@ namespace HOP_CFP_Backend.Services
             _cache = cache;
         }
 
+        protected override async Task SetModel(ManagerModel viewModel)
+        {
+            await base.SetModel(viewModel);
+
+            viewModel.RoleId = await _lazy.ManyToManyService.Value.GetTargetId<Role>(viewModel.Id);
+        }
+
+        protected override async Task ModelSave(ManagerModel viewModel)
+        {
+            await base.ModelSave(viewModel);
+
+            if (viewModel.RoleId.HasValue) 
+            {
+                await _lazy.ManyToManyService.Value.SaveById(viewModel, new List<Guid> { viewModel.RoleId.Value }, nameof(Role));
+            }
+        }
+
         /// <summary>
         /// 檢查Manager最後登入時間跟權限修改時間比對
         /// </summary>
@@ -52,55 +69,55 @@ namespace HOP_CFP_Backend.Services
 
         public async Task SetSessionManagerInfo(Guid managerId)
         {
-           // List<Task> tasks = new List<Task>();
-           // LoginManagerInfo managerInfo = new LoginManagerInfo();
-           // List<AdminMenuByRoleViewModel> roleMenuList = new List<AdminMenuByRoleViewModel>();
-           // List<AdminMenuViewModel> adminMenus = new List<AdminMenuViewModel>();
-           // List<Guid> manageAccounts = new();
-           // EEventRole? eventRole = null;
-           // Guid? eventId = null;
-           //
-           // tasks.AddTask(async () =>
-           // {
-           //     managerInfo = await GetLoginManagerInfoAsync(managerId);
-           //
-           //     if (managerInfo.CompanyId.HasValue)
-           //     {
-           //         manageAccounts = await GetManageAccountsByCompany(managerInfo.CompanyId.Value);
-           //     }
-           // });
-           // tasks.AddTask(async () =>
-           // {
-           //     roleMenuList = await GetRoleMenuListByManager(managerId);
-           //     adminMenus = await GetAdminMenuListByManager(roleMenuList);
-           // });
-           // tasks.AddTask(async () =>
-           // {
-           //     eventRole = await GetEventRoleByManager(managerId);
-           // });
-           // tasks.AddTask(async () =>
-           // {
-           //     IEnumerable<Guid> eventIds = await _lazy.ManyToManyService.Value.GetIdsBySource(managerId, nameof(Events));
-           //     if (eventIds.Count() > 0)
-           //     {
-           //         eventId = eventIds.FirstOrDefault();
-           //     }
-           // });
-           // await Task.WhenAll(tasks);
-           //
-           // SessionManagerInfo = new SessionManagerInfo
-           // {
-           //     ManagerId = managerId,
-           //     Name = managerInfo.Name,
-           //     RoleMenuList = roleMenuList,
-           //     AdminMenuList = adminMenus,
-           //     LastPasswordChangeDate = managerInfo.LastPasswordChangeDate,
-           //     LastApplyRoleDate = SystemVariable.Now,
-           //     CompanyId = managerInfo.CompanyId,
-           //     ManageAccounts = manageAccounts,
-           //     EventRole = eventRole,
-           //     EventId = eventId
-           // };
+            // List<Task> tasks = new List<Task>();
+            // LoginManagerInfo managerInfo = new LoginManagerInfo();
+            // List<AdminMenuByRoleViewModel> roleMenuList = new List<AdminMenuByRoleViewModel>();
+            // List<AdminMenuViewModel> adminMenus = new List<AdminMenuViewModel>();
+            // List<Guid> manageAccounts = new();
+            // EEventRole? eventRole = null;
+            // Guid? eventId = null;
+            //
+            // tasks.AddTask(async () =>
+            // {
+            //     managerInfo = await GetLoginManagerInfoAsync(managerId);
+            //
+            //     if (managerInfo.CompanyId.HasValue)
+            //     {
+            //         manageAccounts = await GetManageAccountsByCompany(managerInfo.CompanyId.Value);
+            //     }
+            // });
+            // tasks.AddTask(async () =>
+            // {
+            //     roleMenuList = await GetRoleMenuListByManager(managerId);
+            //     adminMenus = await GetAdminMenuListByManager(roleMenuList);
+            // });
+            // tasks.AddTask(async () =>
+            // {
+            //     eventRole = await GetEventRoleByManager(managerId);
+            // });
+            // tasks.AddTask(async () =>
+            // {
+            //     IEnumerable<Guid> eventIds = await _lazy.ManyToManyService.Value.GetIdsBySource(managerId, nameof(Events));
+            //     if (eventIds.Count() > 0)
+            //     {
+            //         eventId = eventIds.FirstOrDefault();
+            //     }
+            // });
+            // await Task.WhenAll(tasks);
+            //
+            // SessionManagerInfo = new SessionManagerInfo
+            // {
+            //     ManagerId = managerId,
+            //     Name = managerInfo.Name,
+            //     RoleMenuList = roleMenuList,
+            //     AdminMenuList = adminMenus,
+            //     LastPasswordChangeDate = managerInfo.LastPasswordChangeDate,
+            //     LastApplyRoleDate = SystemVariable.Now,
+            //     CompanyId = managerInfo.CompanyId,
+            //     ManageAccounts = manageAccounts,
+            //     EventRole = eventRole,
+            //     EventId = eventId
+            // };
         }
 
         /// <summary>
@@ -117,11 +134,6 @@ namespace HOP_CFP_Backend.Services
             int emailCount = await QueryFirstAsync<int>(checkEmailSql, new { viewModel.Email });
             if (emailCount > 0)
                 return new ApiResult<object>().SetError("Email 已被使用");
-
-            string checkTaxIDSql = "SELECT COUNT(*) FROM Manager WHERE TaxID = @TaxID AND Status != -1";
-            int taxIDCount = await QueryFirstAsync<int>(checkTaxIDSql, new { viewModel.TaxID });
-            if (taxIDCount > 0)
-                return new ApiResult<object>().SetError("統編已被使用");
 
             byte[] passwordHash = GenPasswordHash(viewModel.Password);
 
@@ -140,17 +152,19 @@ namespace HOP_CFP_Backend.Services
                 Status = EStatus.Enable,
                 CreateUserId = id
             };
-
             await InsertAsync(manager);
+
+            await CheckInsertRoleByTaxID(manager.Id, manager.TaxID);
+
             return new ApiResult<object>().SetSuccess(null, "註冊成功");
         }
 
         /// <summary>
         /// Manager 帳號登入
         /// </summary>
-        public async Task<ApiResult<Guid?>> Login(ManagerLoginViewModel viewModel)
+        public async Task<ApiResult<LoginInfoModel>> Login(ManagerLoginViewModel viewModel)
         {
-            ApiResult<Guid?> result = new();
+            ApiResult<LoginInfoModel> result = new();
 
             string ip = _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString();
 
@@ -173,6 +187,13 @@ namespace HOP_CFP_Backend.Services
             if (manager.Status == EStatus.Disable)
                 return result.SetError("帳號已停用，請聯絡系統管理人員。");
 
+
+            IEnumerable<Guid> roleIds = await _lazy.ManyToManyService.Value.GetIdsBySource(manager.Id, nameof(Role));
+            if (!roleIds.Any()) 
+            {
+                await CheckInsertRoleByTaxID(manager.Id, manager.TaxID);
+            }
+
             Log_ManagerLogin log_ManagerLogin = new Log_ManagerLogin
             {
                 Id = Guid.NewGuid(),
@@ -182,25 +203,55 @@ namespace HOP_CFP_Backend.Services
             };
             await InsertAsync(log_ManagerLogin);
 
-            _cache.Set(log_ManagerLogin.Id, new ManagerSessionModel
-            {
-                ManagerId = manager.Id,
-                Account = manager.Account,
-                Name = manager.Name,
-                TaxID = manager.TaxID
-            }
+            ManagerSessionModel managerSession = manager.CastBy<ManagerSessionModel>();
+            managerSession.AdminMenus = (await _lazy.RoleService.Value.GetRoleAdminMenus(manager.Id)).ToList();
+
+            _cache.Set(log_ManagerLogin.Id, managerSession
             , new MemoryCacheEntryOptions
             {
                 AbsoluteExpiration = DateTimeOffset.UtcNow.AddMinutes(20)
             });
 
-            return result.SetSuccess(log_ManagerLogin.Id);
+            LoginInfoModel loginInfo = new LoginInfoModel
+            {
+                Token = log_ManagerLogin.Id,
+                AdminMenus = managerSession.AdminMenus
+            };
+
+            return result.SetSuccess(loginInfo);
         }
 
-        private byte[] GenPasswordHash(string password) 
+        private byte[] GenPasswordHash(string password)
         {
             string newPassword = password + "|4568A7FF-B35B-4F20-922A-AB2D2B56AECF"; // 加入固定鹽值
             return SHA256.HashData(Encoding.UTF8.GetBytes(newPassword));
+        }
+
+        private async Task CheckInsertRoleByTaxID(Guid managerId, string? taxID) 
+        {
+            string checkTaxIDSql = $@"select RowNum 
+                                        from ( SELECT M.Id, ROW_NUMBER() OVER (ORDER BY CreateDate) AS RowNum
+                                                 FROM Manager M
+                                                where TaxID = @TaxID AND [Status] != -1
+                                                ) a
+                                      where Id = @Id";
+            int? taxIDRownum = await QueryFirstAsync<int?>(checkTaxIDSql, new { TaxID = taxID, Id = managerId });
+
+            RoleType? roleType = RoleType.新註冊;
+            if (!roleType.HasValue
+                || taxIDRownum == 1) { roleType = RoleType.公司管理員; }
+
+            Role role = await _lazy.RoleService.Value.GetDataByType(roleType.Value);
+            if (role == null) { return; }
+
+            ManyToMany many = new ManyToMany
+            {
+                SourceTable = nameof(Manager),
+                SourceId = managerId,
+                TargetTable = nameof(Role),
+                TargetId = role.Id
+            };
+            await InsertAsync(many);
         }
 
     }

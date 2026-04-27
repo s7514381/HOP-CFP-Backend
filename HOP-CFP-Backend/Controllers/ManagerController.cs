@@ -29,7 +29,7 @@ namespace HOP_CFP_Backend.Controllers
             if (!ModelState.IsValid)
                 return Json(GetInvalidModelStateEntry());
 
-            ApiResult<Guid?> result = new();
+            ApiResult<LoginInfoModel> result = new();
             var (isSuccess, _) = await TransactionFunc(async () =>
             {
                 result = await _managerService.Login(viewModel);

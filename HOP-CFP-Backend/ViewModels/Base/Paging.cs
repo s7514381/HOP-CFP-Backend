@@ -11,6 +11,7 @@ namespace HOP_CFP_Backend.ViewModels
         public int draw { get; set; }
         public EStatus? Status { get; set; }
         public Guid? ManagerId { get; set; }
+        public string? TaxID { get; set; }
     }
 
     public class DataTablesOrder

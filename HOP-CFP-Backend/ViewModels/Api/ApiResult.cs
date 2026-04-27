@@ -13,7 +13,7 @@ namespace SmartExpoIoT.ViewModels.Api
 
     public class BaseResult {
         public int? Status { get; set; }
-        public bool Success { get; set; }
+        public bool? Success { get; set; }
         public string Message { get; set; } = string.Empty;
     }
 
@@ -31,6 +31,11 @@ namespace SmartExpoIoT.ViewModels.Api
         {
             response.Success = false;
             response.Message = message;
+            return response;
+        }
+        public static ApiResult<T> SetError<T>(this ApiResult<T> response)
+        {
+            response.Success = false;
             return response;
         }
     }

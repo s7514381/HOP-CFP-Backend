@@ -4,6 +4,7 @@ using HOP_CFP_Backend.Library.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HDP_CFP_Backend.Migrations
 {
     [DbContext(typeof(DBContext))]
-    partial class DBContextModelSnapshot : ModelSnapshot
+    [Migration("20260422054232_Tim_20260422")]
+    partial class Tim_20260422
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -79,8 +82,8 @@ namespace HDP_CFP_Backend.Migrations
                     b.Property<string>("Action")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ActionFunctionSN")
-                        .HasColumnType("int");
+                    b.Property<short?>("ActionFunctionSN")
+                        .HasColumnType("smallint");
 
                     b.Property<string>("Controller")
                         .HasColumnType("nvarchar(max)");
@@ -421,9 +424,6 @@ namespace HDP_CFP_Backend.Migrations
                         .HasColumnType("smallint")
                         .HasComment("狀態");
 
-                    b.Property<int?>("Type")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2")
                         .HasComment("更新時間");
@@ -566,12 +566,19 @@ namespace HDP_CFP_Backend.Migrations
                     b.Property<Guid?>("MaterialId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("MaterialNumber")
+                        .HasColumnType("nvarchar(max)")
+                        .HasComment("供應商料號");
+
                     b.Property<int?>("Sequence")
                         .HasColumnType("int");
 
                     b.Property<short?>("Status")
                         .HasColumnType("smallint")
                         .HasComment("狀態");
+
+                    b.Property<Guid?>("SupplierId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2")

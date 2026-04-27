@@ -5,6 +5,7 @@ namespace HOP_CFP_Backend.ViewModels
 {
     public class ManagerModel : Manager
     {
+        public Guid? RoleId { get; set; }
     }
 
     public class ManagerLoginViewModel
@@ -76,11 +77,14 @@ namespace HOP_CFP_Backend.ViewModels
     /// <summary>
     /// 快取於 IMemoryCache 的登入資訊，以 Token (Guid) 為 Key
     /// </summary>
-    public class ManagerSessionModel
+    public class ManagerSessionModel : Manager
     {
-        public Guid ManagerId { get; set; }
-        public string? Account { get; set; }
-        public string? Name { get; set; }
-        public string? TaxID { get; set; }
+        public List<FullAdminMenuModel> AdminMenus { get; set; } = new();
+    }
+
+    public class LoginInfoModel
+    {
+        public Guid? Token { get; set; }
+        public List<FullAdminMenuModel> AdminMenus { get; set; } = new();
     }
 }

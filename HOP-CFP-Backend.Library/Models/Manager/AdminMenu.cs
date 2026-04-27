@@ -7,6 +7,7 @@ namespace HOP_CFP_Backend.Library.Models.Manager
     [Table("AdminMenu")]
     public class AdminMenu : IdModelBase
     {
+        [ForeignKey(nameof(AdminMenu))]
         public Guid? ParentId { get; set; }
 
         public string? Title { get; set; }

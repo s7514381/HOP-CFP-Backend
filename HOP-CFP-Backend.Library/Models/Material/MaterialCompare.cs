@@ -15,11 +15,7 @@ namespace HOP_CFP_Backend.Library.Models
         [ForeignKey(nameof(Material))]
         public Guid? MaterialId { get; set; }
 
-        [ForeignKey(nameof(Supplier))]
-        public Guid? SupplierId { get; set; }
-
-        [Display(Name = "供應商料號")]
-        public string? MaterialNumber { get; set; }
+        public Guid? BuyerMaterialId { get; set; }
 
         public override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -27,10 +23,7 @@ namespace HOP_CFP_Backend.Library.Models
                  .HasIndex(b => b.MaterialId);
 
             modelBuilder.Entity<MaterialCompare>()
-                 .HasIndex(b => b.SupplierId);
-
-            modelBuilder.Entity<MaterialCompare>()
-                .HasIndex(b => b.MaterialNumber);
+                 .HasIndex(b => b.BuyerMaterialId);
         }
     }
 }

@@ -81,9 +81,24 @@ namespace HOP_CFP_Backend.Services
 
         public async Task SaveById<TParent>(TParent parent, IEnumerable<Guid> ids, string targetTable) where TParent : IdModelBase
         {
+            await SaveById(parent.Id, ids, targetTable, async (item) => 
+            {
+                ManyToMany many = new()
+                {
+                    SourceTable = CommonUtility.GetTableAttribute<TParent>(),
+                    SourceId = parent.Id,
+                    TargetTable = targetTable,
+                    TargetId = item,
+                };
+                await InsertAsync(many);
+            });
+        }
+
+
+        public async Task SaveById(Guid parentId, IEnumerable<Guid> ids, string targetTable, Func<Guid, Task> addFunc)
+        {
             List<Task> tasks = new();
             string sql;
-            Guid parentId = parent.Id;
             HashSet<Guid> hashIds = [.. ids];
 
             IEnumerable<Guid>? existIds = await GetIdsBySource(parentId, targetTable);
@@ -108,19 +123,13 @@ namespace HOP_CFP_Backend.Services
                 {
                     if (!hashExistIds.Contains(item))
                     {
-                        ManyToMany many = new()
-                        {
-                            SourceTable = CommonUtility.GetTableAttribute<TParent>(),
-                            SourceId = parentId,
-                            TargetTable = targetTable,
-                            TargetId = item,
-                        };
-                        await InsertAsync(many);
+                        await addFunc(item);
                     }
                 });
             }
             await Task.WhenAll(tasks);
         }
+
 
         public override async Task Delete(Guid id)
         {

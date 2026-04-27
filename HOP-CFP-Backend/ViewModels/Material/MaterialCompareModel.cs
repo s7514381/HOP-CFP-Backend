@@ -10,5 +10,8 @@ namespace HOP_CFP_Backend.ViewModels
 
         [Display(Name = "供應商統編")]
         public string? SupplierTaxID { get; set; }
+
+        [Display(Name = "供應商統編")]
+        public string? BuyerMaterialNumber { get; set; }
     }
 }

@@ -4,6 +4,7 @@ using HOP_CFP_Backend.Library.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HDP_CFP_Backend.Migrations
 {
     [DbContext(typeof(DBContext))]
-    partial class DBContextModelSnapshot : ModelSnapshot
+    [Migration("20260422061218_Tim_20260422_2")]
+    partial class Tim_20260422_2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -79,8 +82,8 @@ namespace HDP_CFP_Backend.Migrations
                     b.Property<string>("Action")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ActionFunctionSN")
-                        .HasColumnType("int");
+                    b.Property<short?>("ActionFunctionSN")
+                        .HasColumnType("smallint");
 
                     b.Property<string>("Controller")
                         .HasColumnType("nvarchar(max)");
@@ -420,9 +423,6 @@ namespace HDP_CFP_Backend.Migrations
                     b.Property<short?>("Status")
                         .HasColumnType("smallint")
                         .HasComment("狀態");
-
-                    b.Property<int?>("Type")
-                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2")

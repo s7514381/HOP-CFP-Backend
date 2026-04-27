@@ -13,7 +13,7 @@ namespace HOP_CFP_Backend.ViewModels
         public string? Name { get; set; }
 
         [Display(Name = "統編")]
-        public string? TaxID { get; set; }
+        public string? MaterialTaxID { get; set; }
     }
 
     public class SupplierListViewModel : PagingViewModel<SupplierListDataModel>

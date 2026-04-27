@@ -17,8 +17,8 @@ namespace HOP_CFP_Backend.Services
             if (!string.IsNullOrEmpty(searchModel.Name))
                 sqlWhere += $" and main.Name LIKE '%' + @Name + '%' ";
 
-            if (!string.IsNullOrEmpty(searchModel.TaxID))
-                sqlWhere += $" and main.TaxID LIKE '%' + @TaxID + '%' ";
+            if (!string.IsNullOrEmpty(searchModel.MaterialTaxID))
+                sqlWhere += $" and main.TaxID LIKE '%' + @MaterialTaxID + '%' ";
 
             return (mainSql, baseWhere, sqlWhere);
         }
@@ -30,7 +30,7 @@ namespace HOP_CFP_Backend.Services
                 FROM {_tableName}
                 WHERE Status != -1
                   AND {_tableName}.CreateUserId = @CreateUserId
-                  AND (TaxID LIKE @Keyword OR Name LIKE @Keyword ) ", new { Keyword = $"%{keyword}%", CreateUserId = _currentManager?.ManagerId });
+                  AND (TaxID LIKE @Keyword OR Name LIKE @Keyword ) ", new { Keyword = $"%{keyword}%", CreateUserId = _currentManager?.Id });
             return result.Select(x => new SelectListItem(x.Text, x.Value.ToString()));
         }
 

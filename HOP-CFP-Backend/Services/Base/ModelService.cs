@@ -98,15 +98,26 @@ namespace HOP_CFP_Backend.Services
                                 {subWhere}");
         }
 
-        public virtual async Task<IEnumerable<DBModel>> GetMTMDataList(Guid sourceId)
+        public virtual async Task<IEnumerable<DBModel>> GetMTMDataList(Guid sourceId, int? relationType = null)
         {
-            return await QueryAsync<DBModel>(SqlMTMDataList(), new { SourceId = sourceId, TargetTable = _tableName });
-        }
+            string subWhere = "";
+            if (relationType.HasValue)
+                subWhere += "AND RelationType = @RelationType";
 
-        public virtual async Task<IEnumerable<DBModel>> GetMTMDataList(Guid sourceId, int relationType)
-        {
-            string sql = SqlMTMDataList("AND RelationType = @RelationType");
+            string sql = Sql(join: $@"inner join ManyToMany on main.Id = ManyToMany.TargetId",
+                           subWhere: $@"AND ManyToMany.SourceId = @SourceId
+                                        AND TargetTable = @TargetTable
+                                        {subWhere}");
+
             return await QueryAsync<DBModel>(sql, new { SourceId = sourceId, TargetTable = _tableName, RelationType = relationType });
+        }
+        public virtual async Task<DBModel> GetMTMData(Guid sourceId, int? relationType = null)
+        {
+            DBModel result = null;
+            IEnumerable<DBModel> list = await GetMTMDataList(sourceId, relationType);
+            if (list.Count() > 0) { result = list.FirstOrDefault(); }
+
+            return result;
         }
 
         /// <summary>
@@ -288,7 +299,7 @@ namespace HOP_CFP_Backend.Services
             await ModelSave(viewModel);
 
             viewModel.UpdateDate = SystemVariable.Now;
-            viewModel.UpdateUserId = _currentManager?.ManagerId;
+            viewModel.UpdateUserId = _currentManager?.Id;
 
             DBModel DBModel = viewModel;
             await UpdateAsync(DBModel);
@@ -299,9 +310,9 @@ namespace HOP_CFP_Backend.Services
             await ModelSave(viewModel);
 
             viewModel.CreateDate = SystemVariable.Now;
-            viewModel.CreateUserId = _currentManager?.ManagerId;
+            viewModel.CreateUserId = _currentManager?.Id;
             viewModel.UpdateDate = SystemVariable.Now;
-            viewModel.UpdateUserId = _currentManager?.ManagerId;
+            viewModel.UpdateUserId = _currentManager?.Id;
 
             DBModel DBModel = viewModel;
             await InsertAsync(DBModel);
