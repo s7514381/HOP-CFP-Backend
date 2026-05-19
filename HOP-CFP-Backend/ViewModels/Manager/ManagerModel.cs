@@ -85,6 +85,7 @@ namespace HOP_CFP_Backend.ViewModels
     public class LoginInfoModel
     {
         public Guid? Token { get; set; }
+        public string? Name { get; set; }
         public List<FullAdminMenuModel> AdminMenus { get; set; } = new();
     }
 }

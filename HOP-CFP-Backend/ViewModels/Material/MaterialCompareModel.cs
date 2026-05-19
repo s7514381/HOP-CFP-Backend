@@ -13,5 +13,8 @@ namespace HOP_CFP_Backend.ViewModels
 
         [Display(Name = "供應商統編")]
         public string? BuyerMaterialNumber { get; set; }
+
+        [Display(Name = "規格碼")]
+        public string? BuyerSpecNumber { get; set; }
     }
 }

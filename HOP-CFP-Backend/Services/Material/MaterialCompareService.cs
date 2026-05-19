@@ -15,10 +15,12 @@ namespace HOP_CFP_Backend.Services
 
             if (viewModel.BuyerMaterialId.HasValue)
             {
-                (viewModel.BuyerMaterialNumber, viewModel.SupplierName, viewModel.SupplierTaxID) = 
-                    await QueryFirstAsync<(string, string, string)>(
-                        $@"select M.MaterialNumber, S.[Name] as SupplierName, S.TaxID as SupplierTaxID from Material M
+                (viewModel.BuyerMaterialNumber, viewModel.SupplierName, viewModel.SupplierTaxID, viewModel.BuyerSpecNumber) = 
+                    await QueryFirstAsync<(string, string, string, string)>(
+                        $@"select M.MaterialNumber, S.[Name] as SupplierName, S.TaxID as SupplierTaxID, MS.SpecNumber as BuyerSpecNumber from Material M
                              left join Supplier S on M.SupplierId = S.Id
+                             left join MaterialCompare MC on MC.BuyerMaterialId = M.Id and MC.[Status] = 1
+                             left join MaterialSpec MS on MS.MaterialCompareId = MC.Id
                             where M.Id = @Id", new { Id = viewModel.BuyerMaterialId.Value });
             }
         }

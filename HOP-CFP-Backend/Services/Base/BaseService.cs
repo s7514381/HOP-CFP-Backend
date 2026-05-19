@@ -195,6 +195,13 @@ namespace HOP_CFP_Backend.Services
             return path.Trim('\\', '/').Replace('\\', '/');
         }
 
+        protected static DateTime NormalizeEndDateForExclusiveUpperBound(DateTime dateTime)
+        {
+            return dateTime.TimeOfDay == TimeSpan.Zero
+                ? dateTime.Date.AddDays(1)
+                : dateTime;
+        }
+
         public virtual async Task<(bool, Exception ex)> TransactionFunc(Func<Task?> func, Func<Task?> exceptionFunc = null)
         {
             using var trans = _repository.OpenTransaction();

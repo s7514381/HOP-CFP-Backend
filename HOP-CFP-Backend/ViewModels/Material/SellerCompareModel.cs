@@ -38,4 +38,12 @@ namespace HOP_CFP_Backend.ViewModels
         [Display(Name = "買方")]
         public string? BuyerName { get; set; }
     }
+
+    public class SellerCompareImportResult
+    {
+        public int TotalCount { get; set; }
+        public int SuccessCount { get; set; }
+        public int FailureCount { get; set; }
+        public List<string> Errors { get; set; } = new();
+    }
 }

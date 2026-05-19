@@ -37,7 +37,10 @@ namespace HOP_CFP_Backend.Services
                 sqlWhere += $" and Date >= @CreateDateFrom ";
 
             if (searchModel.CreateDateTo.HasValue)
-                sqlWhere += $" and Date <= @CreateDateTo ";
+            {
+                searchModel.CreateDateTo = NormalizeEndDateForExclusiveUpperBound(searchModel.CreateDateTo.Value);
+                sqlWhere += $" and Date < @CreateDateTo ";
+            }
 
             if (!string.IsNullOrEmpty(searchModel.SupplierName))
                 sqlWhere += $" and SupplierName  LIKE '%' + @SupplierName + '%' ";

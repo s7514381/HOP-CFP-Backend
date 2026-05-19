@@ -215,6 +215,7 @@ namespace HOP_CFP_Backend.Services
             LoginInfoModel loginInfo = new LoginInfoModel
             {
                 Token = log_ManagerLogin.Id,
+                Name = manager.Name,
                 AdminMenus = managerSession.AdminMenus
             };
 

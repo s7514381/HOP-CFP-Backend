@@ -24,6 +24,8 @@ namespace HOP_CFP_Backend.Library.Models
         [Display(Name = "產品名稱")]
         public string? ProductName { get; set; }
 
+        public bool? CanSell { get; set; }
+
         public override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Material>()

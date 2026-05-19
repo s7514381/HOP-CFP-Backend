@@ -35,7 +35,10 @@ namespace HOP_CFP_Backend.Services
                 sqlWhere += $" and main.UpdateDate >= @UpdateDateFrom ";
 
             if (searchModel.UpdateDateTo.HasValue)
-                sqlWhere += $" and main.UpdateDate <= @UpdateDateTo ";
+            {
+                searchModel.UpdateDateTo = NormalizeEndDateForExclusiveUpperBound(searchModel.UpdateDateTo.Value);
+                sqlWhere += $" and main.UpdateDate < @UpdateDateTo ";
+            }
 
             return (mainSql, baseWhere, sqlWhere);
         }

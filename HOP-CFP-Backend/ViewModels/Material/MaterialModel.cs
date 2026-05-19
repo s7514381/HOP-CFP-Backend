@@ -37,8 +37,16 @@ namespace HOP_CFP_Backend.ViewModels
         [Display(Name = "產品名稱")]
         public string? ProductName { get; set; }
 
+        [Display(Name = "是否可銷售")]
+        public string? strCanSell { get; set; }
+        public bool? CanSell { get; set; }
     }
 
-    
-
+    public class MaterialImportResult
+    {
+        public int TotalCount { get; set; }
+        public int SuccessCount { get; set; }
+        public int FailureCount { get; set; }
+        public List<string> Errors { get; set; } = new();
+    }
 }

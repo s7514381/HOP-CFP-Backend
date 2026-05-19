@@ -31,6 +31,26 @@ namespace HOP_CFP_Backend.Services
                        Manager.Name AS UpdateUser, 
                        Supplier.Name AS SupplierName,
                        (
+                           SELECT COUNT(1)
+                               FROM MaterialSpec MS
+                           WHERE MS.MaterialId = main.Id
+                               AND MS.[Status] = 1
+                       ) AS SpecCount,
+                       (
+                            SELECT COUNT(1)
+                              FROM MaterialCompare MC
+                             INNER JOIN Material M ON MC.BuyerMaterialId = M.Id AND MC.[Status] = 1
+                             WHERE M.Id = main.Id
+                               AND MC.[Status] = 1
+                               AND NOT EXISTS 
+                                   (
+                                     SELECT 1
+                                       FROM MaterialSpec MS
+                                      WHERE MS.MaterialCompareId = MC.Id
+                                        AND MS.[Status] = 1
+                                    )
+                       ) AS NotCompareCount,
+                       (
                            SELECT STRING_AGG(S.Name, '、') 
                              FROM MaterialCompare MC
 		                     left join Material M on MC.BuyerMaterialId = M.Id
@@ -58,7 +78,15 @@ namespace HOP_CFP_Backend.Services
 
         public override async Task Update(BuyerCompareModel viewModel) 
         {
-            await _lazy.MaterialSpecService.Value.UpdateDetail(viewModel, viewModel.MaterialSpecList);
+            List<Task> tasks = new();
+
+            tasks.Add(_lazy.MaterialSpecService.Value.UpdateDetail(viewModel, viewModel.MaterialSpecList));
+
+            foreach (var item in viewModel.DeleteMaterialCompareIdList) 
+            {
+                tasks.Add(_lazy.MaterialCompareService.Value.Delete(item));
+            }
+            await Task.WhenAll(tasks);
         }
 
         public async Task<IEnumerable<BuyerMaterialCompare>> GetBuyerMaterialList(Guid id)

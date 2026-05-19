@@ -9,6 +9,8 @@ namespace HOP_CFP_Backend.ViewModels
         public string? SupplierName { get; set; }
 
         public List<MaterialSpecModel> MaterialSpecList { get; set; } = new();
+
+        public List<Guid> DeleteMaterialCompareIdList { get; set; } = new();
     }
 
     public class BuyerCompareSearchModel : BaseSearchViewModel
@@ -37,6 +39,12 @@ namespace HOP_CFP_Backend.ViewModels
 
         [Display(Name = "產品名稱")]
         public string? ProductName { get; set; }
+
+        [Display(Name = "規格碼筆數")]
+        public int? SpecCount { get; set; }
+
+        [Display(Name = "未對照筆數")]
+        public int? NotCompareCount { get; set; }
     }
 
     public class BuyerMaterialCompare : MaterialCompare
