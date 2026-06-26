@@ -36,7 +36,54 @@ namespace HOP_CFP_Backend.Controllers
             });
 
             if (!isSuccess)
-                return Json(new ApiResult<object>().SetError("¨t²Î¿ù»~¡A½ĞÁpµ¸¨t²ÎºŞ²z¤H­û¡C"));
+                return Json(new ApiResult<object>().SetError("ï¿½tï¿½Î¿ï¿½ï¿½~ï¿½Aï¿½ï¿½ï¿½pï¿½ï¿½ï¿½tï¿½ÎºŞ²zï¿½Hï¿½ï¿½ï¿½C"));
+
+            return Json(result);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult GetCaptcha()
+        {
+            ApiResult<CaptchaViewModel> result = new();
+            result.SetSuccess(_managerService.GenerateCaptcha());
+            return Json(result);
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel viewModel)
+        {
+            if (!ModelState.IsValid)
+                return Json(GetInvalidModelStateEntry());
+
+            ApiResult<object> result = null;
+            var (isSuccess, _) = await TransactionFunc(async () =>
+            {
+                result = await _managerService.ForgotPassword(viewModel);
+            });
+
+            if (!isSuccess)
+                return Json(new ApiResult<object>().SetError("ç³»çµ±ä¾‹å¤–ï¼Œè«‹è¯çµ¡ç³»çµ±ç®¡ç†äººå“¡ã€‚"));
+
+            return Json(result);
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel viewModel)
+        {
+            if (!ModelState.IsValid)
+                return Json(GetInvalidModelStateEntry());
+
+            ApiResult<object> result = null;
+            var (isSuccess, _) = await TransactionFunc(async () =>
+            {
+                result = await _managerService.ResetPassword(viewModel);
+            });
+
+            if (!isSuccess)
+                return Json(new ApiResult<object>().SetError("ç³»çµ±ä¾‹å¤–ï¼Œè«‹è¯çµ¡ç³»çµ±ç®¡ç†äººå“¡ã€‚"));
 
             return Json(result);
         }
@@ -55,7 +102,7 @@ namespace HOP_CFP_Backend.Controllers
             });
 
             if (!isSuccess)
-                return Json(new ApiResult<object>().SetError("¨t²Î¿ù»~¡A½ĞÁpµ¸¨t²ÎºŞ²z¤H­û¡C"));
+                return Json(new ApiResult<object>().SetError("ï¿½tï¿½Î¿ï¿½ï¿½~ï¿½Aï¿½ï¿½ï¿½pï¿½ï¿½ï¿½tï¿½ÎºŞ²zï¿½Hï¿½ï¿½ï¿½C"));
 
             return Json(result);
         }

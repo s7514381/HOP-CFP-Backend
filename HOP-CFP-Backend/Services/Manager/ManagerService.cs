@@ -222,6 +222,64 @@ namespace HOP_CFP_Backend.Services
             return result.SetSuccess(loginInfo);
         }
 
+        /// <summary>
+        /// 產生數學驗證碼，儲存答案於 cache 並回傳題目
+        /// </summary>
+        public CaptchaViewModel GenerateCaptcha()
+        {
+            var rng = Random.Shared;
+            int a = rng.Next(1, 10);
+            int b = rng.Next(1, 10);
+            string captchaId = Guid.NewGuid().ToString("N");
+            _cache.Set($"captcha_{captchaId}", a + b, TimeSpan.FromMinutes(10));
+            return new CaptchaViewModel { CaptchaId = captchaId, Question = $"{a} + {b} = ?" };
+        }
+
+        /// <summary>
+        /// 忘記密碼：驗證 email、產生 token、寄送重設連結
+        /// </summary>
+        public async Task<ApiResult<object>> ForgotPassword(ForgotPasswordViewModel viewModel)
+        {
+            string sql = "SELECT * FROM Manager WHERE Email = @Email AND Status != -1";
+            Manager manager = await QueryFirstAsync<Manager>(sql, new { viewModel.Email });
+
+            // 不論 email 是否存在，都回傳成功（避免洩漏帳號資訊）
+            if (manager != null)
+            {
+                string token = Guid.NewGuid().ToString("N");
+                _cache.Set($"reset_pw_{token}", manager.Id, TimeSpan.FromMinutes(30));
+
+                string frontendUrl = _configuration.GetValue<string>("SiteSettings:FrontendUrl") ?? "https://localhost:3000";
+                string resetLink = $"{frontendUrl}/reset-password?token={token}";
+                string mailBody = $@"
+                    <p>您好 {manager.Name}，</p>
+                    <p>我們收到您的密碼重設請求，請點擊以下連結重設密碼（30 分鐘內有效）：</p>
+                    <p><a href=""{resetLink}"">{resetLink}</a></p>
+                    <p>若您未申請重設密碼，請忽略此郵件。</p>";
+
+                await _mailSender.SentAsync(viewModel.Email, "重設密碼", mailBody);
+            }
+
+            return new ApiResult<object>().SetSuccess(null, "若此 Email 已註冊，重設連結已發送至您的信箱");
+        }
+
+        /// <summary>
+        /// 重設密碼：驗證 token，更新密碼
+        /// </summary>
+        public async Task<ApiResult<object>> ResetPassword(ResetPasswordViewModel viewModel)
+        {
+            string cacheKey = $"reset_pw_{viewModel.Token}";
+            if (!_cache.TryGetValue(cacheKey, out Guid managerId))
+                return new ApiResult<object>().SetError("連結已失效或不存在，請重新申請忘記密碼");
+
+            byte[] passwordHash = GenPasswordHash(viewModel.NewPassword);
+            string sql = "UPDATE Manager SET PasswordHash = @PasswordHash, LastPasswordChangeDate = @Now WHERE Id = @Id";
+            await ExecuteAsync(sql, new { PasswordHash = passwordHash, Now = DateTime.Now, Id = managerId });
+
+            _cache.Remove(cacheKey);
+            return new ApiResult<object>().SetSuccess(null, "密碼重設成功，請重新登入");
+        }
+
         private byte[] GenPasswordHash(string password)
         {
             string newPassword = password + "|4568A7FF-B35B-4F20-922A-AB2D2B56AECF"; // 加入固定鹽值

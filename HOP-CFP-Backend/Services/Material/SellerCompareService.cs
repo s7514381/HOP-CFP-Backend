@@ -41,15 +41,15 @@ namespace HOP_CFP_Backend.Services
         public override string GetListQueryString_MainSQL()
         {
             return $@"
-                SELECT main.*, 
-                       Manager.Name AS UpdateUser, 
+                SELECT main.*,
+                       Manager.Name AS UpdateUser,
                        Supplier.Name AS SupplierName,
                        (
-                          SELECT STRING_AGG(BuyerManager.Name + '(' + BuyerManager.TaxID + ') - ' + BuyerMaterial.MaterialNumber + '-' + ISNULL(BuyerSpec.SpecNumber, '未對照'), N'、') 
+                          SELECT STRING_AGG(BM.Name + '(' + BM.TaxID + ') - ' + BuyerMaterial.MaterialNumber, N'、')
                             FROM MaterialCompare MC
                             LEFT JOIN Material BuyerMaterial on MC.BuyerMaterialId = BuyerMaterial.Id
-                            LEFT JOIN MaterialSpec BuyerSpec on BuyerSpec.MaterialCompareId = MC.Id
-		                    LEFT JOIN Manager BuyerManager on BuyerManager.Id = BuyerMaterial.UpdateUserId
+                            LEFT JOIN Supplier BuyerSupplier on BuyerSupplier.Id = BuyerMaterial.SupplierId
+                            LEFT JOIN Manager BM on BuyerMaterial.UpdateUserId = BM.Id
                            WHERE MC.MaterialId = main.Id
                              AND MC.[Status] = 1
                        ) AS BuyerName
@@ -59,16 +59,10 @@ namespace HOP_CFP_Backend.Services
                 ";
         }
 
-        public override async Task<SellerCompareModel> GetModel(Guid id)
-        {
-            SellerCompareModel viewModel = await base.GetModel(id);
-            viewModel.MaterialCompareList = await _lazy.MaterialCompareService.Value.GetModelListByParent<Material>(viewModel.Id);
-            return viewModel;
-        }
-
         protected override async Task SetModel(SellerCompareModel viewModel)
         {
             await base.SetModel(viewModel);
+            viewModel.MaterialCompareList = await _lazy.MaterialCompareService.Value.GetModelListByParent<Material>(viewModel.Id);
         }
 
         public override async Task Update(SellerCompareModel viewModel)
@@ -159,7 +153,7 @@ namespace HOP_CFP_Backend.Services
                     continue;
                 }
 
-                var sellerMaterial = await FindSellerMaterialAsync(materialNumber);
+                var sellerMaterial = await FindMaterialAsync(_currentManager?.TaxID, materialNumber);
                 if (sellerMaterial == null)
                 {
                     AddImportError(result, materialNumber, $"找不到可銷售料號「{materialNumber}」", ignoreErrors);
@@ -174,17 +168,10 @@ namespace HOP_CFP_Backend.Services
                     continue;
                 }
 
-                var buyerMaterial = await FindBuyerMaterialAsync(supplierTaxId, buyerMaterialNumber);
+                var buyerMaterial = await FindMaterialAsync(supplierTaxId, buyerMaterialNumber);
                 if (buyerMaterial == null)
                 {
                     AddImportError(result, buyerMaterialNumber, $"找不到對照料號「{buyerMaterialNumber}」或供應商統編「{supplierTaxId}」", ignoreErrors);
-                    if (!ignoreErrors) { break; }
-                    continue;
-                }
-
-                if (!IsCanSell(buyerMaterial))
-                {
-                    AddImportError(result, buyerMaterialNumber, $"對照料號「{buyerMaterialNumber}」不是可銷售料號", ignoreErrors);
                     if (!ignoreErrors) { break; }
                     continue;
                 }
@@ -257,28 +244,15 @@ namespace HOP_CFP_Backend.Services
             return existing != null && existing.Id != Guid.Empty;
         }
 
-        private async Task<Material?> FindSellerMaterialAsync(string materialNumber)
+        private async Task<Material?> FindMaterialAsync(string taxID, string materialNumber)
         {
             return await QueryFirstAsync<Material>(@"
                 SELECT TOP 1 main.*
                   FROM Material main
                   LEFT JOIN Manager ON main.CreateUserId = Manager.Id
                  WHERE main.[Status] != -1
-                   AND main.CanSell = 1
                    AND Manager.TaxID = @TaxID
-                   AND main.MaterialNumber = @MaterialNumber", new { TaxID = _currentManager?.TaxID, MaterialNumber = materialNumber });
-        }
-
-        private async Task<Material?> FindBuyerMaterialAsync(string supplierTaxId, string materialNumber)
-        {
-            return await QueryFirstAsync<Material>(@"
-                SELECT TOP 1 main.*
-                  FROM Material main
-                  LEFT JOIN Supplier ON main.SupplierId = Supplier.Id
-                 WHERE main.[Status] != -1
-                   AND main.CanSell = 1
-                   AND Supplier.TaxID = @TaxID
-                   AND main.MaterialNumber = @MaterialNumber", new { TaxID = supplierTaxId, MaterialNumber = materialNumber });
+                   AND main.MaterialNumber = @MaterialNumber", new { TaxID = taxID, MaterialNumber = materialNumber });
         }
 
         private static bool IsCanSell(Material? material)

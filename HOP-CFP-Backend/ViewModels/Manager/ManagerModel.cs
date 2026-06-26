@@ -88,4 +88,30 @@ namespace HOP_CFP_Backend.ViewModels
         public string? Name { get; set; }
         public List<FullAdminMenuModel> AdminMenus { get; set; } = new();
     }
+
+    public class CaptchaViewModel
+    {
+        public string CaptchaId { get; set; }
+        public string Question { get; set; }
+    }
+
+    public class ForgotPasswordViewModel
+    {
+        [Required(ErrorMessage = "Email為必填")]
+        [EmailAddress(ErrorMessage = "Email格式不正確")]
+        public string Email { get; set; }
+    }
+
+    public class ResetPasswordViewModel
+    {
+        [Required(ErrorMessage = "Token為必填")]
+        public string Token { get; set; }
+
+        [Required(ErrorMessage = "新密碼為必填")]
+        public string NewPassword { get; set; }
+
+        [Required(ErrorMessage = "確認密碼為必填")]
+        [Compare(nameof(NewPassword), ErrorMessage = "密碼與確認密碼不一致")]
+        public string ConfirmPassword { get; set; }
+    }
 }

@@ -42,7 +42,13 @@ namespace HOP_CFP_Backend.Services
             }
 
             if (!string.IsNullOrEmpty(searchModel.MaterialGroupName))
-                sqlWhere += $" and MG.Name LIKE '%' + @MaterialGroupName + '%' ";
+                    sqlWhere += @" and exists (
+                        select 1 from ManyToMany MTM2
+                        inner join MaterialGroup MG2 on MTM2.SourceId = MG2.Id
+                        where MTM2.TargetId = main.Id
+                          and MTM2.TargetTable = 'Material'
+                          and MG2.Name LIKE '%' + @MaterialGroupName + '%'
+                    )";
 
             if (!string.IsNullOrEmpty(searchModel.ProductModel))
                 sqlWhere += $" and main.ProductModel LIKE '%' + @ProductModel + '%' ";
